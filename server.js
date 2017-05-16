@@ -6,6 +6,7 @@ const app = express();
 const MongoClient = require('mongodb').MongoClient;
 
 app.use(bodyParser.urlencoded({extended: true}))
+app.set('view engine', 'ejs')
 
 MongoClient.connect('mongodb://sethgerou:spinspin@ds143241.mlab.com:43241/seth-jokes-node', (err, database) => {
   if (err) console.log(err)
@@ -16,11 +17,12 @@ MongoClient.connect('mongodb://sethgerou:spinspin@ds143241.mlab.com:43241/seth-j
 })
 
 app.get('/', (req, res) => {
-  var cursor = db.collection('jokes').find().toArray(function(err, results){
-    console.log(results)
+  var cursor = db.collection('jokes').find().toArray((err, result) => {
+    if (err) return console.log(err)
+    console.log(result)
+  res.render('index.ejs', {jokes: result})
+  // res.sendFile(__dirname + '/index.html')
   })
-
-  res.sendFile(__dirname + '/index.html')
 })
 
 app.post('/jokes', (req, res) => {
@@ -29,5 +31,22 @@ app.post('/jokes', (req, res) => {
 
     console.log('saved to database')
     res.redirect('/')
+  })
+})
+
+app.get('/quotes', (req, res) => {
+  db.collection('quotes').find().toArray((err, result) => {
+    if (err) return console.log(err)
+    console.log(result)
+    res.render('quotes.ejs', {quotes: result})
+  })
+})
+
+app.post('/quotes', (req, res) => {
+  db.collection('quotes').save(req.body, (err, result) => {
+    if (err) return console.log(err)
+
+    console.log('saved to database')
+    res.redirect('/quotes')
   })
 })
